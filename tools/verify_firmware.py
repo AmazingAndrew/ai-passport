@@ -10,7 +10,7 @@ from pathlib import Path
 EXPECTED_IMAGES = (
     (0x0000, "bootloader/bootloader.bin"),
     (0x8000, "partition_table/partition-table.bin"),
-    (0x10000, "FoloToy-AI-Passport.bin"),
+    (0x10000, "o-platform.bin"),
 )
 
 

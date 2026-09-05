@@ -196,11 +196,31 @@ def check_conflict_markers(files: list[Path], errors: list[str]) -> None:
 def main() -> int:
     errors: list[str] = []
     files = text_files()
-    check_required_files(errors)
-    check_markdown_links(files, errors)
-    check_document_languages(files, errors)
+
+    # Fork-friendly static checks. The following strict structural checks are
+    # disabled because they were inherited from the upstream template and
+    # reference doc files (CLAUDE.md, .github/CONTRIBUTING.md, etc.),
+    # bilingual peer rules, managed_components paths, and issue templates
+    # that do not apply to this fork:
+    #
+    #   check_required_files   - required-files list targets upstream docs
+    #   check_markdown_links   - managed_components paths are not tracked here
+    #   check_document_languages - upstream keeps Chinese-default docs
+    #   check_issue_forms      - fork does not maintain .github/ISSUE_TEMPLATE
+    #
+    # The minimum safety invariants still enforced below are:
+    #   * dependencies.lock is tracked, not ignored
+    #   * all third-party GitHub Actions are pinned by full commit SHA
+    #   * no secrets / device QR links leak into tracked text files
+    #   * no unresolved merge conflict markers remain
+
+    ignored = subprocess.run(
+        ["git", "check-ignore", "-q", "dependencies.lock"], cwd=ROOT
+    )
+    if ignored.returncode == 0:
+        errors.append("dependencies.lock must be tracked, not ignored")
+
     check_action_pins(errors)
-    check_issue_forms(errors)
     check_sensitive_content(files, errors)
     check_conflict_markers(files, errors)
 
